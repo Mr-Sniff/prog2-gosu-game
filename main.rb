@@ -20,10 +20,13 @@ class Projectile
   def initialize
     @x = 640/2
     @y = 480/2
+    @spd = 5
+    @move_x = 0
+    @move_y = 0
   end
 
   def update
-
+    move
   end
 
   def draw
@@ -41,6 +44,19 @@ class Projectile
         end
       end
     end
+  end
+
+  def move
+    @move_x -= @spd if Gosu.button_down?(Gosu::KB_A)
+    @move_x += @spd if Gosu.button_down?(Gosu::KB_D)
+    @move_y -= @spd if Gosu.button_down?(Gosu::KB_W)
+    @move_y += @spd if Gosu.button_down?(Gosu::KB_S)
+
+    @move_x *= 0.7
+    @move_y *= 0.7
+
+    @x += @move_x
+    @y += @move_y
   end
 end
 
