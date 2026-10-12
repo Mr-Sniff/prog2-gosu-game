@@ -1,62 +1,60 @@
 require 'gosu'
+require_relative 'player.rb'
+require_relative 'stacker.rb'
+require_relative 'enemy.rb'
+
+module View
+  WIDTH = 640*2
+  HEIGHT = 480*2
+end
 
 class Window < Gosu::Window
   def initialize
-    super 640, 480
+    super View::WIDTH, View::HEIGHT
     self.caption = "Tutorial Game"
-    @projectile = Projectile.new
+    @player = Player.new
+    @spawner = Spawner.new
+    @bg = Bg.new
   end
   
   def update
-    @projectile.update
+    @spawner.update
+    @player.update
   end
   
   def draw
-    @projectile.draw
+    @bg.draw
+    @spawner.draw
+    @player.draw
   end
 end
 
-class Projectile
+class Bg
+  def draw 
+    col = Gosu::Color.new(255, 30, 30, 30)
+    Gosu.draw_rect(0, 0, View::WIDTH, View::HEIGHT, col)
+  end
+end
+
+class Spawner
   def initialize
-    @x = 640/2
-    @y = 480/2
-    @spd = 5
-    @move_x = 0
-    @move_y = 0
+    @interval = 1000
+    @last_spawn = Gosu.milliseconds
+    @enemies = []
   end
 
   def update
-    move
+    if Gosu.milliseconds > @last_spawn+@interval
+      @last_spawn = Gosu.milliseconds
+      @enemies << Enemy.new
+    end
+
+    @enemies.each {|e| e.update}
+    @enemies.reject! {|e| e.dead?}
   end
 
   def draw
-    angle = Gosu.milliseconds / 20
-    layers = 15
-    layers.times do |i|
-      mult = (layers-i).to_f/layers
-      brightness = i*30
-      col = Gosu::Color.new(255, brightness*0.5, brightness, 255)
-      Gosu.translate(0, -i*5) do
-        Gosu.rotate(angle, @x, @y) do
-            Gosu.draw_triangle(@x, @y - 100*mult, col, 
-                              @x + 87*mult, @y + 50*mult, col, 
-                              @x - 87*mult, @y + 50*mult, col)
-        end
-      end
-    end
-  end
-
-  def move
-    @move_x -= @spd if Gosu.button_down?(Gosu::KB_A)
-    @move_x += @spd if Gosu.button_down?(Gosu::KB_D)
-    @move_y -= @spd if Gosu.button_down?(Gosu::KB_W)
-    @move_y += @spd if Gosu.button_down?(Gosu::KB_S)
-
-    @move_x *= 0.7
-    @move_y *= 0.7
-
-    @x += @move_x
-    @y += @move_y
+    @enemies.each {|e| e.draw}
   end
 end
 
